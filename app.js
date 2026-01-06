@@ -1,9 +1,10 @@
 const express = require("express");
-const nodemailer = require("nodemailer")
+const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(express.json());
 
+// ---- ENV ----
 const {
   SMTP_HOST,
   SMTP_PORT,
@@ -12,23 +13,20 @@ const {
   DEFAULT_TO,
 } = process.env;
 
+// ---- TRANSPORTER ----
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: Number(SMTP_PORT),
-  secure: SMTP_PORT == 465, 
+  secure: SMTP_PORT == 465, // true for 465, false for 587
   auth: {
     user: SMTP_USER,
     pass: SMTP_PASS,
   },
 });
 
+// ---- SEND MAIL (SERVER STARTED ONLY) ----
 app.post("/send", async (req, res) => {
-  const {
-    to = DEFAULT_TO,
-    subject = "📧 Notification",
-    text,
-    html,
-  } = req.body || {};
+  const { to = DEFAULT_TO } = req.body || {};
 
   if (!to) {
     return res.status(400).json({
@@ -39,16 +37,19 @@ app.post("/send", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `"No Reply" <${SMTP_USER}>`,
+      from: `"Server Monitor" <${SMTP_USER}>`,
       to,
-      subject,
-      text,
-      html,
+      subject: "🚀 Server Started",
+      html: `
+        <h2>Server Started Successfully</h2>
+        <p>Time: ${new Date().toLocaleString()}</p>
+        <p>Status: Running</p>
+      `,
     });
 
     res.json({
       success: true,
-      message: "Email sent successfully",
+      message: "Server started email sent",
     });
   } catch (err) {
     res.status(500).json({
