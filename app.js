@@ -28,7 +28,7 @@ app.post("/send", async (req, res) => {
     subject = "📧 Notification",
     text,
     html,
-  } = req.body;
+  } = req.body || {};
 
   if (!to) {
     return res.status(400).json({
@@ -39,7 +39,7 @@ app.post("/send", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `"No replay"`,
+      from: `"No Reply" <${SMTP_USER}>`,
       to,
       subject,
       text,
