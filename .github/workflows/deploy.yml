@@ -1,0 +1,46 @@
+name: Deploy Docker App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/apps/my-api
+
+            echo "📥 Pull latest code"
+            git pull origin main
+
+            echo "🛑 Stop old container"
+            docker stop ${{ secrets.APP_NAME }} || true
+            docker rm ${{ secrets.APP_NAME }} || true
+
+            echo "🧹 Remove old image"
+            docker rmi ${{ secrets.APP_NAME }} || true
+
+            echo "🐳 Build new image"
+            docker build -t ${{ secrets.APP_NAME }} .
+
+            echo "▶️ Run new container"
+            docker run -d \
+              --name ${{ secrets.APP_NAME }} \
+              --restart unless-stopped \
+              -p ${{ secrets.APP_PORT }}:${{ secrets.APP_PORT }} \
+              ${{ secrets.APP_NAME }}
+
+            echo "🧼 Cleanup"
+            docker system prune -f
