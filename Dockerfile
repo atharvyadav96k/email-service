@@ -2,11 +2,14 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+copy package*.json .
 
-copy package*.json ./
 RUN npm install --production
 
-copy . .
+COPY . .
+
+ENV NODE_ENV=production
 
 EXPOSE 3000
-CMD [ "npm", "start" ]
+
+CMD ["node", "index.js"]
