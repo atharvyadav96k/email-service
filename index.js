@@ -1,10 +1,9 @@
 const express = require("express")
-const {sendEmail} = require("./sendEmail")
+const { sendEmail } = require("./sendEmail")
 require("dotenv").config()
 
 const app = express();
 app.use(express.json());
-await sendEmail({ to: "atharvyadav96k@gmail.com", subject: "Server Started", html:"" });
 app.post("/api/email/send", async (req, res) => {
   const { to, subject, html } = req.body;
 
@@ -29,6 +28,7 @@ app.post("/api/email/send", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
+app.listen(3000, async () => {
+  await sendEmail({ to: "atharvyadav96k@gmail.com", subject: "Server Started", html: "" });
   console.log("Email API running on port 3000");
 });
